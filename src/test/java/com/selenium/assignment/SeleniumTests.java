@@ -24,7 +24,6 @@ public class SeleniumTests {
     static void setup() {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
-        System.setProperty("webdriver.chrome.driver", "/Users/sachinmehta/chromedriver_mac64/chromedriver");
         driver = new ChromeDriver(options);
 
     }
