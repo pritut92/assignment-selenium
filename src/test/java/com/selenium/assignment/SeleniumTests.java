@@ -13,29 +13,28 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SeleniumTests {
     private static WebDriver driver;
 
-    @BeforeAll
-    static void setup() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        driver = new ChromeDriver(options);
-
-    }
+    private static WebDriverWait webDriverWait;
 
     @BeforeEach
     void navigate() {
+        System.setProperty("webdriver.chrome.driver", "/Users/sachinmehta/chromedriver_mac64_latest/chromedriver");
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--remote-allow-origins=*");
+        driver = new ChromeDriver(options);
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(20));
         driver.get("https://svtplay.se");
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        WebElement cookie = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"__next\"]/div[2]/div/div[2]/button[2]")));
-        if (cookie.isDisplayed()) {
-            cookie.click();
-        }
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+
+        WebElement cookieModel = driver.findElement(By.xpath("//*[@data-rt='cookie-consent-modal']"));
+        webDriverWait.until(ExpectedConditions.visibilityOf(cookieModel));
+        driver.findElement(By.xpath("//button[text()='Acceptera alla']")).click();
+        webDriverWait.until(ExpectedConditions.invisibilityOf(cookieModel));
     }
 
     @Test
@@ -66,7 +65,7 @@ public class SeleniumTests {
     @Test
     void checkTillganglighetLink() {
         driver.manage().window().maximize();
-        WebElement startMenuElement = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a/span[2]"));
+        WebElement startMenuElement = webDriverWait.until(ExpectedConditions.elementToBeClickable(driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a/span[2]"))));
         new Actions(driver)
                 .scrollToElement(startMenuElement)
                 .perform();
@@ -155,9 +154,8 @@ public class SeleniumTests {
         assertEquals(6, season2Episodes.size());
     }
 
-    @AfterAll
-    static void teardown() {
-        driver.close();
+    @AfterEach
+    void teardown() {
         driver.quit();
     }
 }
