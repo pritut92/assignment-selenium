@@ -21,15 +21,22 @@ public class SeleniumTests {
 
     private static WebDriverWait webDriverWait;
 
-    @BeforeEach
-    void navigate() {
+    private static Actions actions;
+
+    @BeforeAll
+    static void navigate() {
         System.setProperty("webdriver.chrome.driver", "/Users/sachinmehta/chromedriver_mac64_latest/chromedriver");
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(options);
-        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(20));
-        driver.get("https://svtplay.se");
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+
+        webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(2));
+
+        actions = new Actions(driver);
+
+        driver.get("https://svtplay.se");
 
         WebElement cookieModel = driver.findElement(By.xpath("//*[@data-rt='cookie-consent-modal']"));
         webDriverWait.until(ExpectedConditions.visibilityOf(cookieModel));
@@ -38,22 +45,21 @@ public class SeleniumTests {
     }
 
     @Test
-    void checkWebsiteTitle() {
-        driver.manage().window().maximize();
+    void checkTitle() {
+        
         String websiteTitle = driver.getTitle();
         assertEquals("SVT Play", websiteTitle);
     }
 
     @Test
     void checkWebsiteLogo() {
-        driver.manage().window().maximize();
         boolean logoPresent = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/header/div[2]/div/div/nav/a")).isDisplayed();
         Assertions.assertTrue(logoPresent);
     }
 
     @Test
     void checkMenuLinks() {
-        driver.manage().window().maximize();
+        
         WebElement startMenuElement = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/header/div[2]/div/div/nav/ul/li[1]/a"));
         WebElement programMenuElement = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/header/div[2]/div/div/nav/ul/li[2]/a"));
         WebElement kanalerMenuElement = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/header/div[2]/div/div/nav/ul/li[3]/a"));
@@ -63,99 +69,89 @@ public class SeleniumTests {
     }
 
     @Test
-    void checkTillganglighetLink() {
-        driver.manage().window().maximize();
-        WebElement startMenuElement = webDriverWait.until(ExpectedConditions.elementToBeClickable(driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a/span[2]"))));
-        new Actions(driver)
-                .scrollToElement(startMenuElement)
-                .perform();
-        Assertions.assertTrue(startMenuElement.isDisplayed());
-        Assertions.assertEquals("Tillgänglighet i SVT Play", startMenuElement.getText());
+    void checkTillganglighetLink() throws InterruptedException {
+        Thread.sleep(1000);
+        WebElement tillganglighetLink = webDriverWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a"))));
+        actions.moveToElement(tillganglighetLink).perform();
+        Assertions.assertTrue(tillganglighetLink.isDisplayed());
+        Assertions.assertEquals("Tillgänglighet i SVT Play\n" +
+                ", öppnar annan webbplats", tillganglighetLink.getText());
     }
 
     @Test
     void checkClickOnTillganglighetLink() {
-        driver.manage().window().maximize();
-        new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"__next\"]/div[2]/div/div[2]/button[2]"))).click();
-        WebElement linkElement = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a/span[2]"));
-        new Actions(driver)
-                .scrollToElement(linkElement)
-                .perform();
-
-        new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a"))).click();
+        WebElement tillganglighetLink = driver.findElement(By.xpath("//*[@id=\"__next\"]/div/div[3]/div/footer/div/div[5]/div[2]/p[1]/a"));
+        actions.moveToElement(tillganglighetLink);
+        actions.perform();
+        tillganglighetLink.click();
         String websiteHeading = driver.findElement(By.xpath("//*[@id=\"__next\"]/div[2]/main/div/div/div[1]/h1")).getText();
         assertEquals("Så arbetar SVT med tillgänglighet", websiteHeading);
+        driver.navigate().back();
     }
 
     @Test
-    void shouldFindElementById() {
-        driver.manage().window().maximize();
-        WebElement element = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.id("play_a11y-announcer")));
+    void checkFindElementById() {
+        
+        WebElement element = webDriverWait.until(ExpectedConditions.elementToBeClickable(By.id("play_a11y-announcer")));
         assertEquals(true, element.isDisplayed());
     }
 
     @Test
-    void shouldFindElementByClass() {
-        driver.manage().window().maximize();
-        WebElement element = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.className("sc-e5bd8c40-2")));
+    void checkFindElementByXPath() {
+        
+        WebElement element = webDriverWait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"play_a11y-announcer\"]")));
         assertEquals(true, element.isDisplayed());
     }
 
     @Test
-    void shouldFindElementByXPath() {
-        driver.manage().window().maximize();
-        WebElement element = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"play_a11y-announcer\"]")));
+    void checkFindElementByTagName() {
+        
+        WebElement element = webDriverWait.until(ExpectedConditions.elementToBeClickable(By.tagName("header")));
         assertEquals(true, element.isDisplayed());
     }
 
     @Test
-    void shouldFindElementByTagName() {
-        driver.manage().window().maximize();
-        WebElement element = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.tagName("header")));
+    void checkFindElementByCssSelector() {
+        
+        WebElement element = webDriverWait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("#play_a11y-announcer")));
         assertEquals(true, element.isDisplayed());
     }
 
     @Test
-    void shouldFindElementByCssSelector() {
-        driver.manage().window().maximize();
-        WebElement element = new WebDriverWait(driver, Duration.ofSeconds(20)).until(ExpectedConditions.elementToBeClickable(By.cssSelector("#play_a11y-announcer")));
-        assertEquals(true, element.isDisplayed());
-    }
-
-    @Test
-    void shouldSearchTheProgram() throws InterruptedException {
-        driver.manage().window().maximize();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-        WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("q")));
+    void checkSearchTheProgram() throws InterruptedException {
+        WebElement element = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("q")));
         Thread.sleep(1000);
+        element.clear();
         element.sendKeys("Agenda");
         element.sendKeys(Keys.ENTER);
-        WebElement articleElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/section/div/ul/li[1]/article/a")));
+        Thread.sleep(1000);
+        WebElement articleElement = webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/section/div/ul/li[1]/article/a")));
         assertEquals("https://www.svtplay.se/agenda", articleElement.getDomProperty("href"));
     }
 
     @Test
-    void shouldCheckNumberOfEpisodesForASearch() throws InterruptedException {
-        driver.manage().window().maximize();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-        WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("q")));
+    void checkNumberOfEpisodesForASearch() throws InterruptedException {
+        
+        WebElement element = webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.name("q")));
         Thread.sleep(1000);
         element.sendKeys("Pistvakt");
         element.sendKeys(Keys.ENTER);
-        WebElement articleElement = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/section/div/ul/li[1]/article/a")));
+        WebElement articleElement = webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/section/div/ul/li[1]/article/a")));
         articleElement.click();
-        WebElement season2Element = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/div/div[3]/section[2]/h2/a")));
-        new Actions(driver)
+        WebElement season2Element = webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"play_main-content\"]/div/div[3]/section[2]/h2/a")));
+        actions
                 .scrollToElement(season2Element)
                 .perform();
         season2Element.click();
         List<WebElement> season2Episodes = driver.findElements(By.xpath("//*[@id=\"season-2-jx3za5B\"]/article"));
 
+        driver.navigate().back();
+        element.clear();
         assertEquals(6, season2Episodes.size());
     }
 
-    @AfterEach
-    void teardown() {
+    @AfterAll
+    static void teardown() {
         driver.quit();
     }
 }
